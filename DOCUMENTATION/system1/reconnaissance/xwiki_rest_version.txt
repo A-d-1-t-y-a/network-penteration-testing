@@ -1,0 +1,4 @@
+Every 60.0s: curl -s http://10.10.11.80:8080/xwiki/rest/ | grep -o "<version>.*</version>"
+
+<version>15.10.8</version>
+

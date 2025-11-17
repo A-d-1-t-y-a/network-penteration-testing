@@ -1,0 +1,11 @@
+# Nmap 7.94SVN scan initiated Tue Nov 18 05:04:22 2025 as: /usr/lib/nmap/nmap --privileged -p 1433 --script ms-sql-empty-password -oN s2_mssql_empty.txt 10.10.11.90
+Nmap scan report for 10.10.11.90
+Host is up (0.40s latency).
+
+PORT     STATE SERVICE
+1433/tcp open  ms-sql-s
+| ms-sql-empty-password: 
+|_  10.10.11.90:1433: 
+
+# Nmap done at Tue Nov 18 05:04:32 2025 -- 1 IP address (1 host up) scanned in 10.10 seconds
+

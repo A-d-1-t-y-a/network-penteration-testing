@@ -1,0 +1,17 @@
+# Nmap 7.94SVN scan initiated Tue Nov 18 04:38:49 2025 as: /usr/lib/nmap/nmap --privileged -p- --min-rate 2000 -oN s2_full.txt 10.10.11.90
+Nmap scan report for 10.10.11.90
+Host is up (1.1s latency).
+Not shown: 65534 filtered tcp ports (no-response)
+PORT     STATE SERVICE
+1433/tcp open  ms-sql-s
+
+# Nmap done at Tue Nov 18 04:40:02 2025 -- 1 IP address (1 host up) scanned in 72.93 seconds
+
+Nmap scan report for 10.10.11.90
+Host is up (1.1s latency).
+Not shown: 65534 filtered tcp ports (no-response)
+PORT     STATE SERVICE
+1433/tcp open  ms-sql-s
+
+Nmap done: 1 IP address (1 host up) scanned in 72.93 seconds
+

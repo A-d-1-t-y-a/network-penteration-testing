@@ -1,0 +1,12 @@
+# Nmap 7.94SVN scan initiated Tue Nov 18 05:05:07 2025 as: /usr/lib/nmap/nmap --privileged -p 1433 --script ms-sql-brute --script-args userdb=users.txt,passdb=passwords.txt,ms-sql-brute.timeout=5 -oN s2_mssql_brute.txt 10.10.11.90
+
+Nmap scan report for 10.10.11.90
+Host is up (0.51s latency).
+PORT     STATE SERVICE
+1433/tcp open  ms-sql-s
+| ms-sql-brute: 
+|   10.10.11.90:1433: 
+| [10.10.11.90:1433]
+|_  No credentials found
+# Nmap done at Tue Nov 18 05:06:05 2025 -- 1 IP address (1 host up) scanned in 57.98 seconds
+

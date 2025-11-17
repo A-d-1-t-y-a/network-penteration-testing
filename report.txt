@@ -1,0 +1,2 @@
+| Platform | System Name | Release Date | Difficulty | OS | Services | Why I Chose It | 
+|  HTB     |  Linux      | 06/sep/2025  |   Easy     | Linux |

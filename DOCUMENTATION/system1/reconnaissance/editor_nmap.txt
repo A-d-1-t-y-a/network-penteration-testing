@@ -1,0 +1,112 @@
+editor_initial.txt
+
+# Nmap 7.94SVN scan initiated Mon Nov 17 16:16:31 2025 as: /usr/lib/nmap/nmap --privileged -sC -sV -oN editor_initial.txt 10.10.11.80
+
+
+
+Nmap scan report for 10.10.11.80
+
+Host is up (0.31s latency).
+
+Not shown: 997 closed tcp ports (reset)
+
+PORT     STATE SERVICE VERSION
+
+22/tcp   open  ssh     OpenSSH 8.9p1 Ubuntu 3ubuntu0.13 (Ubuntu Linux; protocol 2.0)
+
+| ssh-hostkey: 
+
+|   256 3e:ea:45:4b:c5:d1:6d:6f:e2:d4:d1:3b:0a:3d:a9:4f (ECDSA)
+
+|_  256 64:cc:75:de:4a:e6:a5:b4:73:eb:3f:1b:cf:b4:e3:94 (ED25519)
+
+80/tcp   open  http    nginx 1.18.0 (Ubuntu)
+
+|_http-server-header: nginx/1.18.0 (Ubuntu)
+
+|_http-title: Did not follow redirect to http://editor.htb/
+
+8080/tcp open  http    Jetty 10.0.20
+
+|_http-server-header: Jetty(10.0.20)
+
+| http-methods: 
+
+|_  Potentially risky methods: PROPFIND LOCK UNLOCK
+
+|_http-open-proxy: Proxy might be redirecting requests
+
+| http-webdav-scan: 
+
+|   Server Type: Jetty(10.0.20)
+
+|   WebDAV type: Unknown
+
+|_  Allowed Methods: OPTIONS, GET, HEAD, PROPFIND, LOCK, UNLOCK
+
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+
+
+
+
+editor_inital.txt 
+
+# Nmap 7.94SVN scan initiated Mon Nov 17 16:16:31 2025 as: /usr/lib/nmap/nmap --privileged -sC -sV -oN editor_initial.txt 10.10.11.80
+
+
+
+Nmap scan report for 10.10.11.80
+
+Host is up (0.31s latency).
+
+Not shown: 997 closed tcp ports (reset)
+
+PORT     STATE SERVICE VERSION
+
+22/tcp   open  ssh     OpenSSH 8.9p1 Ubuntu 3ubuntu0.13 (Ubuntu Linux; protocol 2.0)
+
+| ssh-hostkey: 
+
+|   256 3e:ea:45:4b:c5:d1:6d:6f:e2:d4:d1:3b:0a:3d:a9:4f (ECDSA)
+
+|_  256 64:cc:75:de:4a:e6:a5:b4:73:eb:3f:1b:cf:b4:e3:94 (ED25519)
+
+80/tcp   open  http    nginx 1.18.0 (Ubuntu)
+
+|_http-server-header: nginx/1.18.0 (Ubuntu)
+
+|_http-title: Did not follow redirect to http://editor.htb/
+
+8080/tcp open  http    Jetty 10.0.20
+
+|_http-server-header: Jetty(10.0.20)
+
+| http-methods: 
+
+|_  Potentially risky methods: PROPFIND LOCK UNLOCK
+
+|_http-open-proxy: Proxy might be redirecting requests
+
+| http-webdav-scan: 
+
+|   Server Type: Jetty(10.0.20)
+
+|   WebDAV type: Unknown
+
+|_  Allowed Methods: OPTIONS, GET, HEAD, PROPFIND, LOCK, UNLOCK
+
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Xwiki in the background 
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+
+# Nmap done at Mon Nov 17 16:19:04 2025 -- 1 IP address (1 host up) scanned in 153.53 seconds
+
+
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+
+# Nmap done at Mon Nov 17 16:19:04 2025 -- 1 IP address (1 host up) scanned in 153.53 seconds
+
