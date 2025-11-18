@@ -85,14 +85,29 @@ Evidence saved:
 ## System 4: Lock (HackTheBox) — <UPDATE_RELEASE_DATE>
 - IP: 10.129.6.226
 - OS: Windows
-- Status: Ready for testing
-- Script: `SCRIPTS/system4_lock_complete.sh` (ready to run)
+- Status: Reconnaissance Complete, Ready for Exploitation
+- Open ports: 80 (IIS), 445 (SMB), 3000 (Gitea 1.21.3), 3389 (RDP)
+- **Primary Target**: Gitea 1.21.3 (port 3000) - Potential RCE
+- Script: `SCRIPTS/system4_lock_complete.sh` (recon complete)
+- Exploitation Script: `SCRIPTS/system4_lock_exploit.sh` (ready to run)
 
 Next steps:
-- Run complete reconnaissance script
-- Focus on SMB enumeration (port 445)
-- Check for RDP (port 3389)
-- Enumerate Windows services
-- Attempt exploitation based on findings
+- ✅ Reconnaissance complete
+- ⏳ Run Gitea exploitation script
+- ⏳ Attempt Gitea RCE (Git hooks, file upload, or CVE exploit)
+- ⏳ If access gained, escalate privileges on Windows
+- ⏳ Capture user.txt and root.txt flags
+
+---
+
+## DarkZero (10.129.7.35) - Additional System Tested
+- IP: 10.129.7.35
+- OS: Windows (Domain Controller)
+- Domain: darkzero.htb
+- Status: Reconnaissance Complete (90%), Exploitation Not Achieved
+- **Difficulty**: High - Well secured, no obvious exploitation path
+- Evidence: `DOCUMENTATION/darkzero/`
+
+**Summary**: Comprehensive reconnaissance completed but no initial access achieved. Documented for reference. Focus shifted to exploitable systems (Editor, Lock).
 
 

