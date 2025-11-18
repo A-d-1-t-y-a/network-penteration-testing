@@ -1,0 +1,62 @@
+System 3: Soulmate - Reconnaissance Summary
+Date: 2025-11-18
+IP: 10.10.11.86
+Platform: HackTheBox
+Release Date: 06 Sep 2025
+
+=== Port Scan Results ===
+Open Ports:
+- 22/tcp: OpenSSH 8.9p1 Ubuntu
+- 80/tcp: nginx 1.18.0 (Ubuntu) - reverse proxy
+- 4369/tcp: Erlang Port Mapper Daemon (epmd)
+
+=== Service Analysis ===
+1. Web Server (Port 80):
+   - nginx 1.18.0 acting as reverse proxy
+   - Virtual host: soulmate.htb
+   - Backend: Erlang/Elixir/Phoenix application (intermittent)
+   - Behavior: 504 Gateway Timeout (intermittent), 404 for non-existent paths
+
+2. Erlang Port Mapper (Port 4369):
+   - epmd service running
+   - Indicates Erlang/Elixir application stack
+   - Unable to query (erlang-base package unavailable)
+
+=== Web Enumeration Results ===
+- Root path (/): 504 Gateway Timeout (intermittent)
+- /login: 404 Not Found
+- /register: 404 Not Found
+- /signup: 404 Not Found
+- /api/: 404 Not Found
+- /health: 404 Not Found
+- /status: 404 Not Found
+- /robots.txt: 404 Not Found
+- /assets: 301 redirect (only valid path found)
+
+=== Directory Enumeration ===
+Tool: ffuf
+Wordlist: common.txt (4750 entries)
+Results: Only /assets found (301 redirect)
+Duration: 40 seconds
+
+=== Current Status ===
+- Initial reconnaissance completed
+- Backend service is unstable/intermittent
+- Limited attack surface discovered
+- Requires further investigation or different approach
+
+=== Recommendations ===
+1. Try larger wordlists (medium.txt, big.txt)
+2. Investigate /assets directory contents
+3. Check if application requires specific conditions (headers, cookies, etc.)
+4. Consider this may be a more advanced machine
+5. Return to this system after completing other systems
+
+=== Evidence Files ===
+- s3_initial.txt: Initial nmap scan
+- s3_full.txt: Full port scan
+- s3_ffuf_common.txt: First ffuf scan
+- s3_ffuf_results.txt: Second ffuf scan results
+- s3_web_analysis.txt: Web service analysis
+- s3_epmd_attempts.txt: epmd investigation attempts
+

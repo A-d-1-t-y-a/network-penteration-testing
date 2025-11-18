@@ -1,0 +1,34 @@
+System 3: epmd Investigation Attempts
+Date: 2025-11-18
+
+Attempts:
+1. epmd -names -host 10.10.11.86
+   - Result: Command not found (erlang-base package 404 errors from Kali repos)
+   - Status: Failed due to repository issues
+
+2. echo "names" | nc 10.10.11.86 4369
+   - Result: No output shown (may need different approach)
+   - Status: Needs verification
+
+3. Port scan (4000-4010, 8000-8010):
+   - Result: All ports closed
+   - Status: No additional Erlang ports found in common ranges
+
+4. Web endpoint tests:
+   - /api/ → 404 Not Found
+   - /health → 404 Not Found  
+   - /status → 404 Not Found
+   - Status: Backend is responding (404 vs previous 504 timeout - progress!)
+
+Analysis:
+- Backend service is now responding (changed from 504 to 404)
+- Common endpoints don't exist
+- Need to find correct endpoints via directory enumeration
+- epmd query failed due to tool availability, not network issues
+
+Next steps:
+- Try netcat with different epmd query format
+- Access root path again (may work now)
+- Comprehensive directory enumeration with ffuf
+- Check for common Phoenix/Elixir paths
+

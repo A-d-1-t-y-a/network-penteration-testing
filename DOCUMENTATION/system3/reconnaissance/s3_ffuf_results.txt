@@ -1,0 +1,22 @@
+ffuf scan results for http://soulmate.htb/
+Date: 2025-11-18
+Wordlist: /home/aditya/Downloads/seclists/Discovery/Web-Content/common.txt
+Threads: 50
+Matcher: Response status: 200,204,301,302,307,401,403
+
+Results:
+assets [Status: 301, Size: 178, Words: 6, Lines: 8, Duration: 329ms]
+
+Summary:
+- Only one valid path found: /assets (301 redirect)
+- All other common paths return 404 or timeout
+- Backend service is intermittent (504 Gateway Timeout on root path)
+- Application appears to be minimal or requires specific conditions to access
+
+Next steps (when returning to this system):
+- Check /assets directory contents
+- Try larger wordlist (directory-list-2.3-medium.txt or big.txt)
+- Investigate if application needs specific headers or conditions
+- Check if there's a registration/login flow that needs to be triggered
+- Consider that this might be a more advanced machine requiring specific techniques
+

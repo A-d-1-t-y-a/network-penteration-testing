@@ -1,0 +1,36 @@
+System 3: Soulmate Web Analysis
+Date: 2025-11-18
+IP: 10.10.11.86
+
+Findings:
+1. Hosts file updated: soulmate.htb -> 10.10.11.86 ✓
+
+2. Redirect behavior:
+   - Direct IP access: 302 redirect to http://soulmate.htb/
+   - This confirms virtual host configuration
+
+3. Gateway Timeout (504):
+   - Both curl -L and Host header requests result in 504 Gateway Timeout
+   - nginx/1.18.0 is running but backend service is not responding
+   - This suggests:
+     a) Backend Erlang/Phoenix app needs initialization time
+     b) Backend service might be on a different port
+     c) Backend might require specific conditions to start
+
+4. Port 4369 (epmd):
+   - Confirmed: Erlang Port Mapper Daemon
+   - This indicates Erlang/Elixir application stack
+   - epmd manages Erlang node connections
+
+5. Service Architecture:
+   - Frontend: nginx (reverse proxy)
+   - Backend: Erlang/Phoenix application (not responding)
+   - Port mapper: epmd on 4369
+
+Next investigation steps:
+- Wait and retry (some HTB machines need warm-up time)
+- Check for other Erlang ports (epmd can reveal node ports)
+- Try different HTTP methods (POST, OPTIONS)
+- Check for API endpoints or alternative paths
+- Investigate epmd to find actual application ports
+
